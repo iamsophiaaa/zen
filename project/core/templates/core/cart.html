@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %} Cart | Zen Restaurant {% endblock title %}
+{% block content %}
+<section class="bg-gray-50 py-12 min-h-[70vh]">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Heading -->
+    <div class="mb-8 flex items-end justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Your Order</h1>
+        <p id="item-summary" class="mt-1 text-sm text-gray-500"></p>
+      </div>
+      <button
+        id="clear-btn"
+        type="button"
+        class="hidden text-sm font-medium text-red-600 hover:text-red-700 hover:underline"
+      >
+        Clear order
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden rounded-xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+      <h2 class="mt-4 text-lg font-semibold text-gray-900">Your order is empty</h2>
+      <p class="mt-1 text-sm text-gray-500">Add some dishes from the menu to get started.</p>
+      <a href="{% url 'menu' %}"
+         class="mt-6 inline-block rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-gray-900 hover:bg-amber-400 transition duration-200">
+        Browse the menu
+      </a>
+    </div>
+
+    <!-- Cart content -->
+    <div id="cart-content" class="hidden grid gap-6 lg:grid-cols-3">
+
+      <!-- Items -->
+      <ul id="cart-list" class="space-y-4 lg:col-span-2"></ul>
+
+      <!-- Summary -->
+      <aside class="h-fit rounded-xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-6">
+        <h2 class="text-lg font-semibold text-gray-900">Order summary</h2>
+
+        <dl class="mt-4 space-y-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-gray-600">Items</dt>
+            <dd id="summary-count" class="font-medium text-gray-900">0</dd>
+          </div>
+          <div class="flex justify-between border-t border-gray-200 pt-3 text-base">
+            <dt class="font-semibold text-gray-900">Total</dt>
+            <dd id="summary-total" class="font-bold text-gray-900">Rs. 0.00</dd>
+          </div>
+        </dl>
+
+        <button
+          id="checkout-btn"
+          type="button"
+          class="mt-6 w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 transition duration-200"
+        >
+          Place order
+        </button>
+        <a href="{% url 'menu' %}"
+           class="mt-3 block text-center text-sm font-medium text-gray-600 hover:text-gray-900">
+          Continue browsing
+        </a>
+      </aside>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  const CART_KEY = "cart";
+  const CURRENCY = "Rs. ";
+
+  const listEl = document.getElementById("cart-list");
+  const contentEl = document.getElementById("cart-content");
+  const emptyEl = document.getElementById("empty-state");
+  const clearBtn = document.getElementById("clear-btn");
+  const summaryText = document.getElementById("item-summary");
+  const summaryCount = document.getElementById("summary-count");
+  const summaryTotal = document.getElementById("summary-total");
+
+  function getCart() {
+    try {
+      return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    window.dispatchEvent(new Event("cart:updated")); // refresh nav badge
+  }
+
+  const money = (n) => CURRENCY + Number(n).toFixed(2);
+
+  // Escape text so a dish name can never inject HTML
+  function esc(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function render() {
+    const cart = getCart();
+
+    if (cart.length === 0) {
+      contentEl.classList.add("hidden");
+      clearBtn.classList.add("hidden");
+      emptyEl.classList.remove("hidden");
+      summaryText.textContent = "";
+      return;
+    }
+
+    emptyEl.classList.add("hidden");
+    contentEl.classList.remove("hidden");
+    clearBtn.classList.remove("hidden");
+
+    listEl.innerHTML = cart
+      .map(
+        (item) => `
+      <li class="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0">
+          <h3 class="truncate text-base font-semibold text-gray-900">${esc(item.name)}</h3>
+          <p class="mt-1 text-sm text-gray-500">${money(item.price)} each</p>
+        </div>
+
+        <div class="flex items-center justify-between gap-6 sm:justify-end">
+          <!-- Quantity -->
+          <div class="inline-flex items-center rounded-lg border border-gray-300">
+            <button type="button" data-action="dec" data-id="${esc(item.id)}"
+              aria-label="Decrease quantity of ${esc(item.name)}"
+              class="px-3 py-1.5 text-lg leading-none text-gray-700 hover:bg-gray-100 rounded-l-lg">−</button>
+            <span class="min-w-8 px-2 text-center text-sm font-medium text-gray-900">${item.qty}</span>
+            <button type="button" data-action="inc" data-id="${esc(item.id)}"
+              aria-label="Increase quantity of ${esc(item.name)}"
+              class="px-3 py-1.5 text-lg leading-none text-gray-700 hover:bg-gray-100 rounded-r-lg">+</button>
+          </div>
+
+          <!-- Line total -->
+          <p class="w-24 text-right text-sm font-bold text-gray-900">${money(item.price * item.qty)}</p>
+
+          <!-- Remove -->
+          <button type="button" data-action="remove" data-id="${esc(item.id)}"
+            aria-label="Remove ${esc(item.name)}"
+            class="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </li>`
+      )
+      .join("");
+
+    const count = cart.reduce((s, i) => s + i.qty, 0);
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+    summaryText.textContent = `${count} item${count === 1 ? "" : "s"} in your order`;
+    summaryCount.textContent = count;
+    summaryTotal.textContent = money(total);
+  }
+
+  // One listener handles +, −, and remove for every row
+  listEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+
+    const { action, id } = btn.dataset;
+    let cart = getCart();
+    const item = cart.find((i) => i.id === id);
+    if (!item) return;
+
+    if (action === "inc") item.qty += 1;
+    if (action === "dec") item.qty -= 1;
+    if (action === "remove" || item.qty <= 0) {
+      cart = cart.filter((i) => i.id !== id);
+    }
+
+    saveCart(cart);
+    render();
+  });
+
+  clearBtn.addEventListener("click", () => {
+    if (confirm("Remove everything from your order?")) {
+      saveCart([]);
+      render();
+    }
+  });
+
+  // Keep in sync if the cart changes in another tab
+  window.addEventListener("storage", render);
+
+  render();
+</script>
+{% endblock content %}

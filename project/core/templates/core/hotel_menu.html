@@ -1,2 +1,131 @@
-{% extends 'base.html' %} {% block title %}Menu{% endblock title%} {% block
-content %} {% endblock content %}
+{% extends "base.html" %}
+{% load l10n %}
+
+{% block title %} Menu | Zen Restaurant {% endblock title %}
+
+{% block content %}
+<section class="bg-gray-50 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Heading -->
+    <div class="text-center mb-10">
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">Our Menu</h1>
+      <p class="mt-3 text-gray-600">Freshly prepared dishes, made with care.</p>
+    </div>
+
+    <!-- Menu items -->
+    {% if menu_items %}
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% for item in menu_items %}
+      <article class="flex flex-col overflow-hidden bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200">
+
+        <!-- Image -->
+        {% if item.image %}
+        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="h-52 w-full object-cover" />
+        {% else %}
+        <div class="flex h-52 w-full items-center justify-center bg-gray-100 text-sm text-gray-400">
+          No image
+        </div>
+        {% endif %}
+
+        <!-- Details -->
+        <div class="flex flex-1 flex-col p-6">
+          <div class="flex items-start justify-between gap-4">
+            <h2 class="text-lg font-semibold text-gray-900">{{ item.name }}</h2>
+            <span class="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
+              Rs. {{ item.price }}
+            </span>
+          </div>
+
+          {% if item.description %}
+          <p class="mt-3 text-sm leading-relaxed text-gray-600">{{ item.description }}</p>
+          {% endif %}
+
+          <!-- Add button -->
+          <div class="mt-auto pt-6">
+            <button
+              type="button"
+              data-id="{{ item.id }}"
+              data-name="{{ item.name }}"
+              data-price="{{ item.price|unlocalize }}"
+              class="add-btn w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-gray-900 hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 transition duration-200"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <p class="text-center text-gray-500">No menu items available right now. Please check back soon.</p>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- Toast -->
+<div
+  id="toast"
+  role="status"
+  aria-live="polite"
+  class="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 translate-y-4 rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white opacity-0 shadow-lg transition duration-300"
+></div>
+
+<script>
+  const CART_KEY = "cart";
+  const toast = document.getElementById("toast");
+  let toastTimer;
+
+  function showToast(text, isError = false) {
+    toast.textContent = text;
+    toast.classList.toggle("bg-red-600", isError);
+    toast.classList.toggle("bg-gray-900", !isError);
+    toast.classList.remove("opacity-0", "translate-y-4");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.add("opacity-0", "translate-y-4");
+    }, 2000);
+  }
+
+  function getCart() {
+    try {
+      return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  }
+
+  document.querySelectorAll(".add-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const { id, name, price } = btn.dataset;
+
+      try {
+        const cart = getCart();
+        const existing = cart.find((i) => i.id === id);
+
+        if (existing) {
+          existing.qty += 1; // same dish again: bump quantity
+        } else {
+          cart.push({ id, name, price: parseFloat(price), qty: 1 });
+        }
+
+        saveCart(cart);
+        showToast(`${name} added to your order`);
+
+        // quick feedback on the button
+        const original = btn.textContent.trim();
+        btn.textContent = "Added ✓";
+        setTimeout(() => (btn.textContent = original), 1000);
+      } catch (err) {
+        showToast("Could not save your order.", true);
+      }
+    });
+  });
+</script>
+{% endblock content %}

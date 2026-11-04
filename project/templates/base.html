@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
   <body>
-    <nav class="bg-gray-800 p-4">
+    <nav class="bg-amber-500 p-4">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <!-- Logo / Brand -->
         <a href="/" class="text-white text-xl font-bold tracking-wider"
@@ -18,43 +18,144 @@
         <div class="hidden md:flex space-x-6">
           <a
             href="/"
-            class="text-gray-300 hover:text-white transition duration-200"
+            class="text-gray-200 hover:text-white transition duration-200"
             >Home</a
           >
           <a
             href="{% url 'menu' %}"
-            class="text-gray-300 hover:text-white transition duration-200"
+            class="text-gray-200 hover:text-white transition duration-200"
             >Menu</a
           >
           <a
             href="{% url 'about' %}"
-            class="text-gray-300 hover:text-white transition duration-200"
+            class="text-gray-200 hover:text-white transition duration-200"
             >About</a
           >
           <a
             href="/gallery/"
-            class="text-gray-300 hover:text-white transition duration-200"
+            class="text-gray-200 hover:text-white transition duration-200"
             >Gallery</a
           >
           <a
             href="/contact/"
-            class="text-gray-300 hover:text-white transition duration-200"
+            class="text-gray-200 hover:text-white transition duration-200"
             >Contact</a
           >
         </div>
 
-        <!-- Call to Action Button -->
-        <div class="hidden md:block">
-          <a
-            href="/reserve/"
-            class="bg-amber-500 text-gray-900 font-semibold px-4 py-2 rounded-lg hover:bg-amber-400 transition duration-200"
-            >Reserve a Table</a
+        <!-- Search + Login + Cart (right side) -->
+        <div class="hidden md:flex items-center space-x-4">
+          <!-- Search -->
+          <form
+            method="get"
+            action="{% url 'menu' %}"
+            role="search"
+            class="relative"
           >
+            <input
+              type="search"
+              name="q"
+              value="{{ request.GET.q }}"
+              placeholder="Search menu..."
+              aria-label="Search menu"
+              class="w-52 rounded-lg bg-gray-100 py-2 pl-4 pr-10 text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <button
+              type="submit"
+              aria-label="Search"
+              class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-700"
+            >
+              <svg
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+          </form>
+
+          <!-- Login / Logout -->
+          {% if user.is_authenticated %}
+
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="rounded-lg border border-gray-500 px-4 py-2 text-sm font-semibold text-gray-200 hover:border-white hover:text-white transition duration-200"
+            >
+              Logout
+            </button>
+          </form>
+          <span class="text-sm text-gray-300">{{ user.username }}</span>
+          {% else %}
+          <a
+            href="{% url 'login' %}"
+            class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-amber-400 hover:text-white transition duration-200"
+            >Login</a
+          >
+          {% endif %}
+
+          <!-- Cart (always visible) -->
+          <a
+            href="{% url 'cart' %}"
+            aria-label="View your order"
+            class="relative p-2 text-white hover:text-gray-200 transition duration-200"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <span
+              class="cart-count hidden absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-gray-900 px-1 text-xs font-bold text-white"
+              >0</span
+            >
+          </a>
         </div>
 
-        <!-- Mobile Menu Button (Hamburger) -->
-        <div class="md:hidden flex items-center">
+        <!-- Mobile: Cart + Hamburger -->
+        <div class="md:hidden flex items-center space-x-3">
+          <a
+            href="/cart/"
+            aria-label="View your order"
+            class="relative p-2 text-white hover:text-gray-200"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <span
+              class="cart-count hidden absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-gray-900 px-1 text-xs font-bold text-white"
+              >0</span
+            >
+          </a>
+
           <button
+            type="button"
             id="menu-btn"
             aria-label="Toggle menu"
             aria-expanded="false"
@@ -78,35 +179,124 @@
       </div>
 
       <!-- Mobile Menu -->
-      <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-2">
+      <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-3">
+        <!-- Mobile search -->
+        <form method="get" action="{% url 'menu' %}" role="search">
+          <input
+            type="search"
+            name="q"
+            value="{{ request.GET.q }}"
+            placeholder="Search menu..."
+            aria-label="Search menu"
+            class="w-full rounded-lg bg-gray-700 px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </form>
+
         <a href="/" class="block text-gray-300 hover:text-white">Home</a>
-        <a href="/menu/" class="block text-gray-300 hover:text-white">Menu</a>
-        <a href="/about/" class="block text-gray-300 hover:text-white">About</a>
+        <a href="{% url 'menu' %}" class="block text-gray-300 hover:text-white"
+          >Menu</a
+        >
+        <a href="{% url 'about' %}" class="block text-gray-300 hover:text-white"
+          >About</a
+        >
         <a href="/gallery/" class="block text-gray-300 hover:text-white"
           >Gallery</a
         >
         <a href="/contact/" class="block text-gray-300 hover:text-white"
           >Contact</a
         >
+
+        <!-- Mobile login / logout -->
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="w-full rounded-lg border border-gray-100 px-4 py-2 text-center text-sm font-semibold text-gray-200 hover:border-white hover:text-white"
+          >
+            Logout ({{ user.username }})
+          </button>
+        </form>
+        {% else %}
         <a
-          href="/reserve/"
-          class="block bg-amber-500 text-gray-900 font-semibold text-center px-4 py-2 rounded-lg hover:bg-amber-400"
-          >Reserve a Table</a
+          href="{% url 'login' %}"
+          class="block rounded-lg bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-gray-900 hover:bg-amber-400"
+          >Login</a
         >
+        {% endif %}
       </div>
     </nav>
 
-    {% block content %}
-    <h1>hello i am sophia</h1>
-    {% endblock content %}
+    {% block content %} {% endblock content %}
+    <!-- Hours + Contact -->
+    <section class="bg-gray-900 py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-10 md:grid-cols-2">
+
+          <div>
+            <h2 class="text-2xl font-bold text-white">Opening hours</h2>
+            <dl class="mt-6 space-y-3 text-gray-300">
+              <div class="flex justify-between border-b border-gray-700 pb-3">
+                <dt>Monday &ndash; Friday</dt>
+                <dd class="font-medium text-white">10:00 am &ndash; 9:00 pm</dd>
+              </div>
+              <div class="flex justify-between border-b border-gray-700 pb-3">
+                <dt>Saturday &ndash; Sunday</dt>
+                <dd class="font-medium text-white">9:00 am &ndash; 10:00 pm</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="md:justify-self-end">
+            <h2 class=" text-2xl font-bold text-white">Get in touch</h2>
+            <ul class="mt-6 space-y-3 text-gray-300">
+              <li>Phone: <a href="tel:+9770000000000" class="font-medium text-white hover:text-amber-400">+977 000 000 0000</a></li>
+              <li>Email: <a href="mailto:info@zenrestaurant.com" class="font-medium text-white hover:text-amber-400">info@zenrestaurant.com</a></li>
+            </ul>
+            <a href="/contact/"
+              class="mt-6 inline-block rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-amber-400 transition duration-200">
+              Contact us
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
 
     <script>
+      // Mobile menu toggle
       const btn = document.getElementById("menu-btn");
       const menu = document.getElementById("mobile-menu");
       btn.addEventListener("click", () => {
         const open = menu.classList.toggle("hidden") === false;
         btn.setAttribute("aria-expanded", open);
       });
+
+      // Cart count badge (reads the "cart" saved in localStorage)
+      function updateCartCount() {
+        let count = 0;
+        try {
+          const cart = JSON.parse(localStorage.getItem("cart")) || [];
+          count = cart.reduce((sum, item) => sum + item.qty, 0);
+        } catch {}
+        document.querySelectorAll(".cart-count").forEach((el) => {
+          el.textContent = count;
+          el.classList.toggle("hidden", count === 0);
+          el.classList.toggle("flex", count > 0);
+        });
+      }
+
+      // Make ANY write to the "cart" key refresh the badge instantly,
+      // so it works even if the page doing the saving forgets to fire an event.
+      const originalSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        originalSetItem.apply(this, arguments);
+        if (key === "cart") window.dispatchEvent(new Event("cart:updated"));
+      };
+
+      updateCartCount();
+      window.addEventListener("cart:updated", updateCartCount); // same tab
+      window.addEventListener("storage", updateCartCount); // other tabs
     </script>
   </body>
 </html>
