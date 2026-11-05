@@ -74,6 +74,7 @@
 ></div>
 
 <script>
+
   const CART_KEY = "cart";
   const toast = document.getElementById("toast");
   let toastTimer;
@@ -103,6 +104,7 @@
 
   document.querySelectorAll(".add-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
+      localStorage.setItem("table_id",  {{table_id}})
       const { id, name, price } = btn.dataset;
 
       try {

@@ -9,10 +9,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name="home"), 
     path('about/' , about, name="about"),
-    path('menu/' , menu, name="menu"),
+    
     path('cart/' , cart, name="cart"),
     path('gallery/' , gallery, name="gallery"),
     path('contact/' , contact, name="contact"),
+     path('menu/', menu, name="menu"),                            
+     path('order/', order, name="order"),                            
+    path('menu/tables/<int:table_id>/', menu, name="menu"), 
+    
      path('login/' , login, name="login"),
     path('logout/' , logout, name="logout"),
 ]
