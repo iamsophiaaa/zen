@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Log in | Zen Restaurant{% endblock title %}
+
+{% block content %}
+<section class="bg-gray-50 py-16">
+  <div class="mx-auto w-full max-w-md px-4">
+    <div class="rounded-xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
+
+      <h1 class="text-2xl font-bold text-gray-900">Log in</h1>
+      <p class="mt-2 text-sm text-gray-600">Welcome back. Enter your details to continue.</p>
+
+      <!-- Errors -->
+      {% if form.non_field_errors %}
+      <div class="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+      {% endif %}
+      {% if messages %}
+      {% for message in messages %}
+      <div class="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200" role="alert">
+        {{ message }}
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'login-page' %}" class="mt-6 space-y-5" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}" />
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ request.POST.email }}"
+            autocomplete="email"
+            required
+            placeholder="you@example.com"
+            class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+
+        <!-- Password with eye toggle -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <div class="relative mt-1">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              autocomplete="current-password"
+              required
+              placeholder="Enter your password"
+              class="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-4 pr-11 text-sm text-gray-900 placeholder-gray-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <button
+              type="button"
+              id="toggle-password"
+              aria-label="Show password"
+              aria-controls="password"
+              aria-pressed="false"
+              class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-700 focus:outline-none focus:text-amber-600"
+            >
+              <!-- Eye (shown when password is hidden) -->
+              <svg id="eye-open" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <!-- Eye with slash (shown when password is visible) -->
+              <svg id="eye-closed" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-gray-900 transition duration-200 hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+        >
+          Log in
+        </button>
+      </form>
+
+      <!-- Signup link -->
+      <p class="mt-6 text-center text-sm text-gray-600">
+        Don't have an account?
+        <a href="{% url 'signup-page' %}" class="font-semibold text-amber-600 hover:text-amber-500 hover:underline">Sign up</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    const input = document.getElementById("password");
+    const btn = document.getElementById("toggle-password");
+    const eyeOpen = document.getElementById("eye-open");
+    const eyeClosed = document.getElementById("eye-closed");
+
+    btn.addEventListener("click", () => {
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      eyeOpen.classList.toggle("hidden", show);
+      eyeClosed.classList.toggle("hidden", !show);
+      btn.setAttribute("aria-pressed", show);
+      btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    });
+  })();
+</script>
+{% endblock content %}

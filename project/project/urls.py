@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from core.views import *
 from django.conf import settings
 from django.conf.urls.static import static   
@@ -16,9 +16,7 @@ urlpatterns = [
      path('menu/', menu, name="menu"),                            
      path('order/', order, name="order"),                            
     path('menu/tables/<int:table_id>/', menu, name="menu"), 
-    
-     path('login/' , login, name="login"),
-    path('logout/' , logout, name="logout"),
+    path('accounts/', include("accounts.urls"))
 ]
 
 

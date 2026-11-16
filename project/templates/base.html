@@ -10,7 +10,7 @@
     <nav class="bg-amber-500 p-4">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <!-- Logo / Brand -->
-        <a href="/" class="text-white text-xl font-bold tracking-wider"
+        <a href="{% url "home" %}" class="text-white text-xl font-bold tracking-wider"
           >Zen Restaurant</a
         >
 
@@ -32,18 +32,18 @@
             >About</a
           >
           <a
-            href="/gallery/"
+            href="{% url 'gallery' %}"
             class="text-gray-200 hover:text-white transition duration-200"
             >Gallery</a
           >
           <a
-            href="/contact/"
+            href="{% url "contact" %}"
             class="text-gray-200 hover:text-white transition duration-200"
             >Contact</a
           >
         </div>
 
-        <!-- Search + Login + Cart (right side) -->
+        <!-- Right side: Search, Orders, Cart, then Login/Logout at the end -->
         <div class="hidden md:flex items-center space-x-4">
           <!-- Search -->
           <form
@@ -81,31 +81,39 @@
             </button>
           </form>
 
-          <!-- Login / Logout -->
-          {% if user.is_authenticated %}
-
-          <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button
-              type="submit"
-              class="rounded-lg border border-gray-500 px-4 py-2 text-sm font-semibold text-gray-200 hover:border-white hover:text-white transition duration-200"
-            >
-              Logout
-            </button>
-          </form>
-          <span class="text-sm text-gray-300">{{ user.username }}</span>
-          {% else %}
+          <!-- Orders (always visible) with count -->
           <a
-            href="{% url 'login' %}"
-            class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-amber-400 hover:text-white transition duration-200"
-            >Login</a
+            href="{% url "order" %}"
+            aria-label="View your orders"
+            title="My orders"
+            class="relative p-2 text-white hover:text-gray-200 transition duration-200"
           >
-          {% endif %}
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+              />
+            </svg>
+            {% with n=request.session.order_ids|length %}
+            <span
+              class="orders-count {% if n %}flex{% else %}hidden{% endif %} absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-gray-900 px-1 text-xs font-bold text-white"
+              >{{ n }}</span
+            >
+            {% endwith %}
+          </a>
 
           <!-- Cart (always visible) -->
           <a
             href="{% url 'cart' %}"
-            aria-label="View your order"
+            aria-label="View your cart"
+            title="Cart"
             class="relative p-2 text-white hover:text-gray-200 transition duration-200"
           >
             <svg
@@ -126,13 +134,60 @@
               >0</span
             >
           </a>
+
+          <!-- Login / Logout (end of the nav) -->
+          {% if user.is_authenticated %}
+
+          <span class="text-sm text-gray-300">{{ user.username }}</span>
+          <form method="post" action="{% url 'logout-page' %}">
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="rounded-lg border border-gray-500 px-4 py-2 text-sm font-semibold text-gray-200 hover:border-white hover:text-white transition duration-200"
+            >
+              Logout
+            </button>
+          </form>
+          {% else %}
+          <a
+            href="{% url 'login-page' %}"
+            class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-amber-400 hover:text-white transition duration-200"
+            >Login</a
+          >
+          {% endif %}
         </div>
 
-        <!-- Mobile: Cart + Hamburger -->
+        <!-- Mobile: Orders + Cart + Hamburger -->
         <div class="md:hidden flex items-center space-x-3">
           <a
-            href="/cart/"
-            aria-label="View your order"
+            href="{% url "order" %}"
+            aria-label="View your orders"
+            class="relative p-2 text-white hover:text-gray-200"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+              />
+            </svg>
+            {% with n=request.session.order_ids|length %}
+            <span
+              class="orders-count {% if n %}flex{% else %}hidden{% endif %} absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-gray-900 px-1 text-xs font-bold text-white"
+              >{{ n }}</span
+            >
+            {% endwith %}
+          </a>
+
+          <a
+            href="{% url "cart" %}"
+            aria-label="View your cart"
             class="relative p-2 text-white hover:text-gray-200"
           >
             <svg
@@ -192,23 +247,23 @@
           />
         </form>
 
-        <a href="/" class="block text-gray-300 hover:text-white">Home</a>
+        <a href="{% url "home" %}" class="block text-gray-300 hover:text-white">Home</a>
         <a href="{% url 'menu' %}" class="block text-gray-300 hover:text-white"
           >Menu</a
         >
         <a href="{% url 'about' %}" class="block text-gray-300 hover:text-white"
           >About</a
         >
-        <a href="/gallery/" class="block text-gray-300 hover:text-white"
+        <a href="{% url 'gallery' %}" class="block text-gray-300 hover:text-white"
           >Gallery</a
         >
-        <a href="/contact/" class="block text-gray-300 hover:text-white"
+        <a href="{% url "contact" %}" class="block text-gray-300 hover:text-white"
           >Contact</a
         >
 
-        <!-- Mobile login / logout -->
+        <!-- Mobile login / logout (end of the menu) -->
         {% if user.is_authenticated %}
-        <form method="post" action="{% url 'logout' %}">
+        <form method="post" action="{% url 'logout-page' %}">
           {% csrf_token %}
           <button
             type="submit"
@@ -219,14 +274,51 @@
         </form>
         {% else %}
         <a
-          href="{% url 'login' %}"
+          href="{% url 'login-page' %}"
           class="block rounded-lg bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-gray-900 hover:bg-amber-400"
           >Login</a
         >
         {% endif %}
       </div>
     </nav>
-
+    <!-- Django messages (toasts) -->
+{% if messages %}
+<div
+  id="toast-container"
+  class="pointer-events-none fixed left-4 right-4 top-4 z-50 space-y-3 sm:left-auto sm:w-96"
+  aria-live="polite"
+>
+  {% for message in messages %}
+  <div
+    role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}"
+    class="toast-item pointer-events-auto flex translate-x-full items-start gap-3 rounded-lg bg-white p-4 text-sm opacity-0 shadow-lg ring-1 ring-gray-200 transition duration-300 border-l-4
+      {% if message.level_tag == 'success' %}border-green-500
+      {% elif message.level_tag == 'error' %}border-red-500
+      {% elif message.level_tag == 'warning' %}border-amber-500
+      {% else %}border-gray-400{% endif %}"
+  >
+    <p
+      class="flex-1 font-medium
+        {% if message.level_tag == 'success' %}text-green-800
+        {% elif message.level_tag == 'error' %}text-red-700
+        {% elif message.level_tag == 'warning' %}text-amber-800
+        {% else %}text-gray-800{% endif %}"
+    >
+      {{ message }}
+    </p>
+    <button
+      type="button"
+      aria-label="Dismiss message"
+      class="toast-close shrink-0 text-gray-400 transition hover:text-gray-700 focus:outline-none"
+    >
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
     {% block content %} {% endblock content %}
     <!-- Hours + Contact -->
     <section class="bg-gray-900 py-16">
@@ -253,7 +345,7 @@
               <li>Phone: <a href="tel:+9770000000000" class="font-medium text-white hover:text-amber-400">+977 000 000 0000</a></li>
               <li>Email: <a href="mailto:info@zenrestaurant.com" class="font-medium text-white hover:text-amber-400">info@zenrestaurant.com</a></li>
             </ul>
-            <a href="/contact/"
+            <a href="{% url "contact" %}"
               class="mt-6 inline-block rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-amber-400 transition duration-200">
               Contact us
             </a>
@@ -297,6 +389,38 @@
       updateCartCount();
       window.addEventListener("cart:updated", updateCartCount); // same tab
       window.addEventListener("storage", updateCartCount); // other tabs
+
+      // Orders count badge. The first value is rendered by Django from the
+      // session; after placing an order, cart.html fires "orders:updated"
+      // with the new count so the badge changes without a reload.
+      function setOrdersCount(count) {
+        document.querySelectorAll(".orders-count").forEach((el) => {
+          el.textContent = count;
+          el.classList.toggle("hidden", !count);
+          el.classList.toggle("flex", !!count);
+        });
+      }
+      window.addEventListener("orders:updated", (e) => setOrdersCount(e.detail));
+      // Django messages: slide in, auto-hide after 5s, pause on hover, manual dismiss
+document.querySelectorAll(".toast-item").forEach((toast, i) => {
+  let timer;
+
+  function hide() {
+    toast.classList.add("translate-x-full", "opacity-0");
+    setTimeout(() => toast.remove(), 300);
+  }
+  function startTimer() {
+    timer = setTimeout(hide, 5000);
+  }
+
+  // Slide in (staggered a little if there are several)
+  setTimeout(() => toast.classList.remove("translate-x-full", "opacity-0"), 50 + i * 100);
+  startTimer();
+
+  toast.addEventListener("mouseenter", () => clearTimeout(timer));
+  toast.addEventListener("mouseleave", startTimer);
+  toast.querySelector(".toast-close").addEventListener("click", hide);
+});
     </script>
   </body>
 </html>
