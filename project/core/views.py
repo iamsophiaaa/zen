@@ -100,7 +100,7 @@ def payment(request):
             }
         })
         headers = {
-            'Authorization': 'key 1313cea3ae4a4d0cac07a5ec6535decd',
+            'Authorization': 'key ',
             'Content-Type': 'application/json',
         }
 
@@ -119,7 +119,7 @@ def payment_confirm(request):
         
     })
     headers = {
-        'Authorization': 'key 1313cea3ae4a4d0cac07a5ec6535decd',
+        'Authorization': 'key ',
         'Content-Type': 'application/json',
     }
     response = requests.request("POST", url, headers=headers, data=payload)
