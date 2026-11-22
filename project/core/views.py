@@ -1,8 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import *
 import json
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
+import requests
+from django.urls import reverse
 
 
 # Create your views here.
@@ -61,8 +64,80 @@ def order(request):
         })
     else:
         table_id = request.session['table_id']
-        orders = Order.objects.filter(id__in = request.session.get('order_ids'))
+        orders = Order.objects.filter(id__in = request.session.get('order_ids')).order_by('-created_at')
         return render(request, "core/order.html", {"table_id":table_id, "orders":orders})
 
     
 
+def payment(request):
+    if request.method == "POST":
+        order_id = request.POST.get('order_id')
+        try:
+            order = Order.objects.get(pk=order_id)
+        except Order.DoesNotExist:
+            messages.error(request, "Payment initiation failed")
+            return redirect('order')
+
+        payment, created = Payment.objects.get_or_create(
+            order = order,
+            defaults = {
+                "amount": order.total * 100
+            }
+        )
+        url = "https://dev.khalti.com/api/v2/epayment/initiate/"
+        return_url = request.build_absolute_uri(reverse('payment_confirm'))
+        print(return_url)
+        payload = json.dumps({
+            "return_url": return_url,
+            "website_url": "https://example.com/",
+            "amount": str(payment.amount),
+            "purchase_order_id": str(payment.id),
+            "purchase_order_name": "test",
+            "customer_info": {
+            "name": "Ram Bahadur",
+            "email": "test@khalti.com",
+            "phone": "9800000001"
+            }
+        })
+        headers = {
+            'Authorization': 'key 1313cea3ae4a4d0cac07a5ec6535decd',
+            'Content-Type': 'application/json',
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+        data = response.json()
+        payment.pidx = data.get('pidx')
+        payment.save()
+
+        return redirect(data.get('payment_url'))
+       
+def payment_confirm(request):
+    print("payment done, lets confirm it")
+    url = "https://dev.khalti.com/api/v2/epayment/lookup/"
+    payload = json.dumps({
+        "pidx": request.GET.get('pidx')
+        
+    })
+    headers = {
+        'Authorization': 'key 1313cea3ae4a4d0cac07a5ec6535decd',
+        'Content-Type': 'application/json',
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    data = response.json()
+    amount = data.get('total_amount')
+    status = data.get('status')
+    pidx  = data.get('pidx')
+    
+    try: 
+        payment = Payment.objects.get(pidx = pidx )
+    except Payment.DoesNotExist:
+        messages.error(request, "Payment reference doesn't exist. Please contact administrator" )
+
+    else:
+        if status == "Completed"  and amount == payment.amount:
+            payment.status = Payment.STATUS.COMPLETE
+            payment.save()
+            messages.success(request, "Payment successful for order")
+
+    return redirect('order')
+        

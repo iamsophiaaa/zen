@@ -1,5 +1,5 @@
 from django.db import models
-
+import uuid
 # Create your models here.
 class MenuItem(models.Model):
     name = models.CharField(max_length=100)
@@ -19,21 +19,43 @@ class Table(models.Model):
 
 class Order(models.Model):
     class StatusChoice(models.TextChoices):
-        PREPARING= 'p', 'Preparing'
-        SERVED = 's', 'Served'
+        PREPARING = 'p', 'Preparing'
         READY = 'r', 'Ready'
+        SERVED = 's', 'Served'
+
     table = models.ForeignKey(Table, on_delete=models.PROTECT)
-    total = models.DecimalField()
-    status = models.CharField(max_length=1, choices=StatusChoice, default=StatusChoice.PREPARING)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(
+        max_length=1,
+        choices=StatusChoice.choices,
+        default=StatusChoice.PREPARING,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)   
 
     def __str__(self):
-        return f"{self.table}-{self.status}"
+        return f"{self.table}-{self.get_status_display()}"
 
 class OrderItem(models.Model):
     menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)
     quantity = models.IntegerField(default=1)
     total = models.DecimalField()
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True,  related_name="items")
 
     def __str__(self):
         return f"{self.menu_item}*{self.quantity}= {self.total}"
+
+
+class Payment(models.Model):
+    class STATUS(models.TextChoices):
+        COMPLETE = 'c', 'Complete'
+        PENDING = 'p', 'Pending'
+    id = models.UUIDField(primary_key=True, default = uuid.uuid4, editable = False)
+    amount = models.IntegerField(default = 0, help_text= "(in paisa)")
+    order = models.OneToOneField(Order, on_delete= models.PROTECT, related_name = "payment")
+    status = models.CharField(max_length=1, choices = STATUS , default = STATUS.PENDING)
+
+#khalti fields
+    pidx = models.CharField(max_length = 200, null=True, unique = True)
+    def __str__(self):
+        return self.id
+

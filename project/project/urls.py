@@ -15,6 +15,9 @@ urlpatterns = [
     path('contact/' , contact, name="contact"),
      path('menu/', menu, name="menu"),                            
      path('order/', order, name="order"),                            
+     path('payment/', payment, name="payment"),   
+     path('payment/confirm', payment_confirm, name="payment_confirm"),   
+
     path('menu/tables/<int:table_id>/', menu, name="menu"), 
     path('accounts/', include("accounts.urls"))
 ]
