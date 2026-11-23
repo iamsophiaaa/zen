@@ -21,24 +21,29 @@ def login_view(request):
 
     return render(request, 'accounts/login.html')
 
+
 def signup_view(request):
     if request.method == "POST":
         signup_form = SignupForm(request.POST)
         if not signup_form.is_valid():
-            return render(request, "accounts/signup.html", {'form':signup_form}) 
+            return render(request, "accounts/signup.html", {"form": signup_form})
 
-        #user registration
+        # user registration
         user = User.objects.create_user(
-            username = signup_form.cleaned_data["email"],
-            email = signup_form.cleaned_data["email"],
-            password  = signup_form.cleaned_data["password1"]
+            username=signup_form.cleaned_data["email"],
+            email=signup_form.cleaned_data["email"],
+            password=signup_form.cleaned_data["password1"],
         )
+
         if not user:
-            messages.error("Something went wrong. Please try again later")
-        messages.success("Sign up successfully. You can login now")
+            messages.error(request, "Something went wrong. Please try again later.")
+            return render(request, "accounts/signup.html", {"form": signup_form})
+
+        messages.success(request, "Signed up successfully. You can log in now.")
         return redirect("login-page")
+
     signup_form = SignupForm()
-    return render(request, "accounts/signup.html", {"form":signup_form})
+    return render(request, "accounts/signup.html", {"form": signup_form})
 
 
 def logout_view(request):
