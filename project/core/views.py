@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 import requests
 from django.urls import reverse
+from django.conf import settings
 
 
 # Create your views here.
@@ -100,7 +101,7 @@ def payment(request):
             }
         })
         headers = {
-            'Authorization': 'key ',
+            'Authorization': f'key {settings.KHALTI_SECRET_KEY} ',
             'Content-Type': 'application/json',
         }
 
@@ -119,7 +120,7 @@ def payment_confirm(request):
         
     })
     headers = {
-        'Authorization': 'key ',
+        'Authorization': f'key {settings.KHALTI_SECRET_KEY} ',
         'Content-Type': 'application/json',
     }
     response = requests.request("POST", url, headers=headers, data=payload)

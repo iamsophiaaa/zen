@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Page not found | Zen Restaurant{% endblock title %}
+
+{% block content %}
+<section class="bg-white py-24">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <p class="text-sm font-semibold uppercase tracking-wider text-amber-500">
+      Error 404
+    </p>
+    <h1 class="mt-4 text-4xl font-bold text-gray-900 sm:text-5xl">
+      Page not found
+    </h1>
+    <p class="mt-6 text-lg text-gray-600">
+      Sorry, we couldn&rsquo;t find the page you&rsquo;re looking for. It may
+      have been moved, or the link might be wrong.
+    </p>
+
+    <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a
+        href="{% url 'home' %}"
+        class="inline-block rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-amber-400 transition duration-200"
+        >Back to home</a
+      >
+      <a
+        href="{% url 'menu' %}"
+        class="inline-block rounded-lg border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:border-amber-500 hover:text-amber-500 transition duration-200"
+        >View our menu</a
+      >
+    </div>
+  </div>
+</section>
+{% endblock content %}
