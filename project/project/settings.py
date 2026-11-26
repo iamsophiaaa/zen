@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'accounts',
+    'background_task',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -97,7 +99,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kathmandu'
 
 USE_I18N = True
 
@@ -130,3 +132,18 @@ MEDIA_ROOT = "media"
 MEDIA_URL = "media/"
 
 KHALTI_SECRET_KEY = config('KHALTI_SECRET_KEY')
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_TIMEZONE = "Asia/Kathmandu"
+CELERY_TASK_TRACK_STARTED = True
+
+# CELERY_BEAT_SCHEDULE= {
+#     'run-every-minute': {
+#         "task": "core.tasks.update_popular_menu_items",
+#         "schedule": 60.0,
+#         "args": (),
+#     },
+# }
+
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"

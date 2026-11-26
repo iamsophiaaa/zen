@@ -76,6 +76,8 @@
 <script>
 
   const CART_KEY = "cart";
+  const TABLE_ID = "{{ table_id|default_if_none:'' }}";
+  if (TABLE_ID) localStorage.setItem("table_id", TABLE_ID);
   const toast = document.getElementById("toast");
   let toastTimer;
 
@@ -104,7 +106,7 @@
 
   document.querySelectorAll(".add-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      localStorage.setItem("table_id",  {{table_id}})
+      
       const { id, name, price } = btn.dataset;
 
       try {

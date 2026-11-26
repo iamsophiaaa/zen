@@ -77,6 +77,9 @@
         {% if order.payment.status != 'c' %}
         <form action="{% url 'payment' %}" method="post" class="px-5 pb-5">
           {% csrf_token %}
+          <p>Loyalty Points available: {{ request.user.wallet.loyalty_points }}</p>
+          <label for="use-points">Use Loyalty Points ? </label>
+          <input type="checkbox" name="use-points" id="use-points">
           <input type="hidden" name="order_id" value="{{ order.id }}">
           <button
             type="submit"

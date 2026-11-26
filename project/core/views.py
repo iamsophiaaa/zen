@@ -7,6 +7,11 @@ from django.contrib import messages
 import requests
 from django.urls import reverse
 from django.conf import settings
+from .services import LoyaltyPoints
+from accounts.models import Wallet
+from decimal import Decimal
+
+from django.db import transaction
 
 
 # Create your views here.
@@ -16,11 +21,12 @@ def home(request):
 def about(request):
     return render(request, "core/about_us.html")
 
+
 def menu(request, table_id=None):
     if table_id is not None:
         request.session["table_id"] = table_id      # new scan: remember it
     else:
-        table_id = request.session.get("table_id")  # plain /menu/: use the saved one
+        table_id = request.session.get("table_id")  # plain /menu/: use saved one
 
     menu_items = MenuItem.objects.all()
     return render(
@@ -29,60 +35,96 @@ def menu(request, table_id=None):
         {"menu_items": menu_items, "table_id": table_id},
     )
 
+
 def cart(request):
-    table_id = request.session["table_id"]
+    table_id = request.session.get("table_id")      # no KeyError if missing
     return render(request, "core/cart.html", {"table_id": table_id})
 
+
+def order(request):
+    if request.method == "POST":
+        # Parse the cart safely
+        try:
+            cart_data = json.loads(request.POST.get("cart", "[]"))
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid cart"}, status=400)
+
+        if not cart_data:
+            return JsonResponse({"error": "Cart is empty"}, status=400)
+
+        # Prefer the session's table; fall back to what the form sent
+        table_id = request.session.get("table_id") or request.POST.get("table_id")
+        if not table_id or table_id in ("None", "null", ""):
+            return JsonResponse({"error": "No table selected"}, status=400)
+
+        try:
+            with transaction.atomic():
+                new_order = Order.objects.create(table_id=table_id, total=0)
+                order_total = Decimal("0")
+
+                for item in cart_data:
+                    qty = int(item.get("qty", 0))
+                    if qty < 1:
+                        continue
+                    menu_item = MenuItem.objects.get(id=item.get("id"))
+                    item_total = menu_item.price * qty
+                    OrderItem.objects.create(
+                        order=new_order,
+                        menu_item=menu_item,
+                        quantity=qty,
+                        total=item_total,
+                    )
+                    order_total += item_total
+
+                new_order.total = order_total
+                new_order.save()
+        except (MenuItem.DoesNotExist, ValueError, TypeError):
+            return JsonResponse({"error": "Invalid item in cart"}, status=400)
+
+        order_ids = request.session.get("order_ids", [])
+        order_ids.append(new_order.id)
+        request.session["order_ids"] = order_ids
+
+        return JsonResponse({"order_id": new_order.id, "orders_count": len(order_ids),})
+
+    # GET
+    table_id = request.session.get("table_id")
+    orders = Order.objects.filter(
+        id__in=request.session.get("order_ids", [])
+    ).order_by("-created_at")
+    return render(request, "core/order.html", {"table_id": table_id, "orders": orders})
 def gallery(request):
     return render(request, "core/gallery.html")
 
 def contact(request):
     return render(request, "core/contact.html")
 
-def order(request):
-    if request.method == "POST":
-        cart = json.loads(request.POST.get("cart"))
-        table_id = request.POST.get("table_id")
-        order = Order.objects.create(table_id = table_id, total=0)
-        order_total = 0
-
-        for item in cart:
-            item_id = item.get("id")
-            item_name = item.get("name")
-            menu_item = MenuItem.objects.get(id=item_id)
-            item_total = item.get("qty")*menu_item.price
-            order_item = OrderItem.objects.create(menu_item=menu_item, quantity= item.get("qty"), total = item_total, order=order)
-            order_total+=order_item.total
-
-        order.total = order_total
-        order.save()
-        order_ids = request.session.get('order_ids', [])
-        order_ids.append(order.id)
-        request.session['order_ids']= order_ids
-        
-        return JsonResponse({
-            'order_id': order.id
-        })
-    else:
-        table_id = request.session['table_id']
-        orders = Order.objects.filter(id__in = request.session.get('order_ids')).order_by('-created_at')
-        return render(request, "core/order.html", {"table_id":table_id, "orders":orders})
-
-    
 
 def payment(request):
     if request.method == "POST":
         order_id = request.POST.get('order_id')
+       
+
         try:
             order = Order.objects.get(pk=order_id)
         except Order.DoesNotExist:
             messages.error(request, "Payment initiation failed")
             return redirect('order')
+        use_points = request.POST.get('use-points')
+        if use_points:
+            wallet = request.user.wallet
+            paisa = LoyaltyPoints.calculate_paisa(wallet.loyalty_points)
+            wallet.loyalty_points = 0
+            wallet.save()
+
+        else:
+            paisa = 0
 
         payment, created = Payment.objects.get_or_create(
             order = order,
             defaults = {
-                "amount": order.total * 100
+                "amount": order.total * 100- paisa,
+                
             }
         )
         url = "https://dev.khalti.com/api/v2/epayment/initiate/"
@@ -139,6 +181,12 @@ def payment_confirm(request):
             payment.status = Payment.STATUS.COMPLETE
             payment.save()
             messages.success(request, "Payment successful for order")
-
-    return redirect('order')
+            points = LoyaltyPoints.calculate(payment)
+            wallet , created = Wallet.objects.get_or_create(
+                user = request.user,
+                )
+            wallet.loyalty_points += points
+            wallet.save()
+            messages.success(request, f"{points} loyalty points added to wallet")
+            return redirect('order')
         

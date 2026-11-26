@@ -11,7 +11,7 @@ def login_view(request):
         password = request.POST.get("password")
         user = authenticate( username=email, password=password)
         if user is None:
-            messages.error("Invalid credentials")
+            messages.error(request, "Invalid credentials")
             return redirect("login-page")
 
         login(request, user)
