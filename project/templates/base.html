@@ -1,5 +1,7 @@
+{% load i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!doctype html>
-<html lang="en">
+<html lang="{{ CURRENT_LANGUAGE }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,32 +21,47 @@
           <a
             href="/"
             class="text-gray-200 hover:text-white transition duration-200"
-            >Home</a
+            >{% trans "Home" %}</a
           >
           <a
             href="{% url 'menu' %}"
             class="text-gray-200 hover:text-white transition duration-200"
-            >Menu</a
+            >{% trans "Menu" %}</a
           >
           <a
             href="{% url 'about' %}"
             class="text-gray-200 hover:text-white transition duration-200"
-            >About</a
+            >{% trans "About" %}</a
           >
           <a
             href="{% url 'gallery' %}"
             class="text-gray-200 hover:text-white transition duration-200"
-            >Gallery</a
+            >{% trans "Gallery" %}</a
           >
           <a
             href="{% url "contact" %}"
             class="text-gray-200 hover:text-white transition duration-200"
-            >Contact</a
+            >{% trans "Contact" %}</a
           >
         </div>
 
         <!-- Right side: Search, Orders, Cart, then Login/Logout at the end -->
         <div class="hidden md:flex items-center space-x-4">
+          <!-- Language switcher -->
+          <form action="{% url 'set_language' %}" method="post" class="flex rounded-lg bg-white/20 p-0.5">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            <button type="submit" name="language" value="en"
+              class="rounded-md px-3 py-1 text-xs font-semibold transition duration-200
+                {% if CURRENT_LANGUAGE == 'en' %}bg-white text-gray-900{% else %}text-white hover:bg-white/20{% endif %}">
+              EN
+            </button>
+            <button type="submit" name="language" value="ne"
+              class="rounded-md px-3 py-1 text-xs font-semibold transition duration-200
+                {% if CURRENT_LANGUAGE == 'ne' %}bg-white text-gray-900{% else %}text-white hover:bg-white/20{% endif %}">
+              नेपाली
+            </button>
+          </form>
           <!-- Search -->
           <form
             method="get"
@@ -246,20 +263,26 @@
             class="w-full rounded-lg bg-gray-700 px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </form>
+        <form action="{% url 'set_language' %}" method="post" class="flex gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+          <button type="submit" name="language" value="en"
+            class="flex-1 rounded-lg px-4 py-2 text-sm font-semibold
+              {% if CURRENT_LANGUAGE == 'en' %}bg-white text-gray-900{% else %}border border-gray-100 text-gray-200{% endif %}">
+            English
+          </button>
+          <button type="submit" name="language" value="ne"
+            class="flex-1 rounded-lg px-4 py-2 text-sm font-semibold
+              {% if CURRENT_LANGUAGE == 'ne' %}bg-white text-gray-900{% else %}border border-gray-100 text-gray-200{% endif %}">
+            नेपाली
+          </button>
+        </form>
 
-        <a href="{% url "home" %}" class="block text-gray-300 hover:text-white">Home</a>
-        <a href="{% url 'menu' %}" class="block text-gray-300 hover:text-white"
-          >Menu</a
-        >
-        <a href="{% url 'about' %}" class="block text-gray-300 hover:text-white"
-          >About</a
-        >
-        <a href="{% url 'gallery' %}" class="block text-gray-300 hover:text-white"
-          >Gallery</a
-        >
-        <a href="{% url "contact" %}" class="block text-gray-300 hover:text-white"
-          >Contact</a
-        >
+        <a href="/" ...>{% trans "Home" %}</a>
+        <a href="{% url 'menu' %}" ...>{% trans "Menu" %}</a>
+        <a href="{% url 'about' %}" ...>{% trans "About" %}</a>
+        <a href="{% url 'gallery' %}" ...>{% trans "Gallery" %}</a>
+        <a href="{% url 'contact' %}" ...>{% trans "Contact" %}</a>
 
         <!-- Mobile login / logout (end of the menu) -->
         {% if user.is_authenticated %}
