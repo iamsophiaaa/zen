@@ -3,9 +3,10 @@ import uuid
 # Create your models here.
 class MenuItem(models.Model):
     name = models.CharField(max_length=100)
-    price = models.DecimalField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(null=True, blank=True)
     image= models.ImageField(upload_to="menu-items/", null=True)
+    is_popular = models.BooleanField(default = False)
 
     def __str__(self):
         return self.name
@@ -38,7 +39,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)
     quantity = models.IntegerField(default=1)
-    total = models.DecimalField()
+    total = models.DecimalField(max_digits=10, decimal_places=2)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True,  related_name="items")
 
     def __str__(self):
@@ -57,5 +58,5 @@ class Payment(models.Model):
 #khalti fields
     pidx = models.CharField(max_length = 200, null=True, unique = True)
     def __str__(self):
-        return self.id
+        return str(self.id)
 
