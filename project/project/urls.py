@@ -5,6 +5,12 @@ from core.views import home, about, cart, gallery, contact, menu, order, payment
 from django.conf import settings
 from django.conf.urls.static import static   
 from django.contrib.auth import views as auth_views
+from rest_framework import routers
+from apis.views import *
+
+router = routers.DefaultRouter()
+
+router.register(r"menuitems", MenuItemModelViewset, basename = "menuitem")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -52,6 +58,11 @@ urlpatterns = [
         name="password_reset_complete",
     ),
      path('i18n/', include('django.conf.urls.i18n')),
+
+
+
+    #  rest-framework urls
+    path('apis/', include(router.urls))
 ]
 
 
